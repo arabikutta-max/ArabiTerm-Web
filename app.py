@@ -2,37 +2,49 @@ import streamlit as st
 import sys
 import io
 
-# টার্মিনালের মতো ডার্ক থিম কনফিগারেশন
 st.set_page_config(page_title="ArabiTerm Pro", page_icon="💻", layout="wide")
 
+# বক্স ছাড়া ফুল স্ক্রিন টার্মিনাল স্টাইল
 st.markdown("""
     <style>
+    /* পুরো স্ক্রিন কালো */
     .stApp {
-        background-color: #0c0c0c;
-        color: #00ff66;
-        font-family: 'Courier New', Courier, monospace;
+        background-color: #000000;
+        color: #00ff00;
+        font-family: 'Courier New', monospace;
+    }
+    /* ইনপুট বক্সের বর্ডার ও ব্যাকগ্রাউন্ড গায়েব করা */
+    div[data-baseweb="input"] {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
     }
     input {
-        background-color: #1a1a1a !important;
-        color: #00ff66 !important;
-        font-family: 'Courier New', Courier, monospace !important;
+        background-color: transparent !important;
+        color: #00ff00 !important;
+        border: none !important;
+        font-family: 'Courier New', monospace !important;
+        font-size: 16px !important;
+    }
+    /* ডিভাইডার লাইন সরিয়ে ফেলা */
+    hr {
+        display: none;
     }
     .stMarkdown p {
-        color: #00ff66;
+        color: #00ff00;
+        font-family: 'Courier New', monospace;
+        font-size: 16px;
+        margin: 0;
     }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("💻 ArabiTerm Pro - Terminal Edition")
-st.write("--------------------------------------------------")
-
-# কমান্ড হিস্ট্রি বজায় রাখা
+# হিস্ট্রি ট্র্যাক করা
 if "history" not in st.session_state:
     st.session_state.history = []
 
-# কমান্ড ইনপুট ফাংশন
 def run_command():
-    cmd = st.session_state.user_cmd
+    cmd = st.session_state.current_cmd
     if cmd.strip():
         if cmd.strip().lower() == "clear":
             st.session_state.history = []
@@ -47,13 +59,21 @@ def run_command():
                 st.session_state.history.append((cmd, f"Error: {e}"))
             finally:
                 sys.stdout = old_stdout
-        st.session_state.user_cmd = ""
+        st.session_state.current_cmd = ""
 
-# পুরোনো কমান্ড ও আউটপুট প্রদর্শন
+# শিরোনাম
+st.write("ArabiTerm Pro Terminal [Version 2.0]")
+st.write("Type 'clear' to reset terminal history.")
+st.write("--------------------------------------------------")
+
+# পূর্বের লাইন বাই লাইন আউটপুট দেখানো
+line_num = 1
 for cmd, output in st.session_state.history:
-    st.text(f">>> {cmd}")
-    st.text(output)
-    st.write("---")
+    st.text(f"Line {line_num}: >>> {cmd}")
+    if output:
+        st.text(output)
+    line_num += 1
 
-# কমান্ড ইনপুট বক্স
-st.text_input("Enter Command:", key="user_cmd", on_change=run_command, placeholder="e.g. print('Hello World')")
+# নতুন ইনপুট দেওয়ার লাইন (বক্স ছাড়া)
+current_label = f"Line {line_num}: >>>"
+st.text_input(current_label, key="current_cmd", on_change=run_command, placeholder="Enter or paste command here...")
